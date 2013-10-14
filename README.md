@@ -1,7 +1,6 @@
-[![Build Status](https://travis-ci.org/atonparker/bitterset.png?branch=master)](https://travis-ci.org/atonparker/bitterset)
-
 BitterSet
 =========
+[![Build Status](https://travis-ci.org/atonparker/bitterset.png?branch=master)](https://travis-ci.org/atonparker/bitterset)
 
 __BitterSet__ aims to be a a fast &amp; simple BitSet implementation consistent with the [Java BitSet class](http://docs.oracle.com/javase/7/docs/api/java/util/BitSet.html). The set will automatically grow and shrink to accomodate the largest significant bit.
 
