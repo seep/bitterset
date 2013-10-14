@@ -90,22 +90,22 @@ Looping over all of the significant values of the set:
 
 Combining multiple sets:
 
-   a = new BitterSet
-   a.set 0
-   a.set 1
+    a = new BitterSet
+    a.set 0
+    a.set 1
 
-   b = new BitterSet
-   b.set 1
-   b.set 2
+    b = new BitterSet
+    b.set 1
+    b.set 2
 
-   c = new BitterSet
-   c.set 2
-   c.set 3
+    c = new BitterSet
+    c.set 2
+    c.set 3
 
-   a.or b     # a is now the set {0,1,2}
-   a.and b    # a is now the set {1,2}
-   a.xor c    # a is now the set {1,3}
-   a.andnot c # a is now the set {1}
+    a.or b     # a is now the set {0,1,2}
+    a.and b    # a is now the set {1,2}
+    a.xor c    # a is now the set {1,3}
+    a.andnot c # a is now the set {1}
 
 Testing
 =======
