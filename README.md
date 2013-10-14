@@ -1,10 +1,12 @@
+[![Build Status](https://travis-ci.org/atonparker/bitterset.png?branch=master)](https://travis-ci.org/atonparker/bitterset)
+
 BitterSet
 =========
 
 __BitterSet__ aims to be a a fast &amp; simple BitSet implementation consistent with the [Java BitSet class](http://docs.oracle.com/javase/7/docs/api/java/util/BitSet.html). The set will automatically grow and shrink to accomodate the largest significant bit.
 
 Methods
-=======
+-------
 
 <dl>
 
@@ -56,7 +58,7 @@ Methods
 </dl>
 
 Examples
-========
+--------
 
 Getting, setting, and clearing values on the set:
 
@@ -108,12 +110,12 @@ Combining multiple sets:
     a.andnot c # a is now the set {1}
 
 Testing
-=======
+-------
 
 BitterSet uses [Mocha](http://visionmedia.github.io/mocha/) for testing. To run the test suite, call `npm test` in the project directory.
 
 License
-=======
+-------
 
 The MIT License (MIT)
 
