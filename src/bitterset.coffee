@@ -105,7 +105,9 @@ module.exports = class BitterSet
 
   # Remove any unused words from the end of the bitset.
   cull: ->
-    @store.pop() while @store.length > 0 and @store[@store.length - 1] is 0x0
+    while @store.length > 0
+      tail = @store[@store.length - 1]
+      if not tail? or tail is 0x0 then @store.pop() else break
     return
 
   # Perform a logical OR against this bitset.

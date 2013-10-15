@@ -1,6 +1,6 @@
 {
   "name": "bitterset",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Chris Parker <me@chrisaparker.com>",
   "description": "a fast & simple bitset implementation",
   "main": "./lib/bitterset",
