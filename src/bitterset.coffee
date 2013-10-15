@@ -156,7 +156,7 @@ module.exports = class BitterSet
   # Returns a string representation of this bitset, as a list of bit indexes that are set to true.
   toString: ->
     do @cull
-    return "\{#{ bits(word, index) for word, index in @store }\}"
+    return "\{#{ bits(word, index) for word, index in @store when word? and word isnt 0 }\}"
 
   # Returns a string representation of this bitset, as a string of significant bits.
   toBinaryString: ->
@@ -167,8 +167,8 @@ module.exports = class BitterSet
       # This fill string is a left-pad of zeroes using a little Array#join hack. Since the previous word might have 
       # been shorter than the WORD_BIT characters we need, so we left-pad it to keep all our indexes lined up. We 
       # have to add one because Array#join only inserts (n - 1) seperators.
-      fill = if index > 0 then Array(WORD_BITS - string.length + 1).join('0') else ''
-      return string + fill + bstring(word)
+      fill = if index > 0 then Array(index * WORD_BITS - string.length + 1).join('0') else ''
+      return bstring(word) + fill + string
     # The Array#reduce function requires a default value when operating on an empty array, so we put it in there just 
     # in case.
     return @store.reduce reducer, ''

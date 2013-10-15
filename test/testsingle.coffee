@@ -124,6 +124,21 @@ describe 'a bitset with bit 0 and bit 32 set, and all bits cleared', ->
   it 'should look like "" as a binary string', ->
     bs.toBinaryString().should.eql ''
 
+describe 'a bitset with bit 0 and bit 64 set', ->
+  bs = new BitterSet
+  bs.set 0
+  bs.set 64
+  it 'should have a length of 65', ->
+    bs.length().should.eql 65
+  it 'should have a cardinality of 2', ->
+    bs.cardinality().should.eql 2
+  it 'should have 3 words', ->
+    bs.store.should.have.length 3
+  it 'should look like "{0,64}" as a string', ->
+    bs.toString().should.eql '{0,64}'
+  it 'should look like "10000000000000000000000000000000000000000000000000000000000000001" as a binary string', ->
+    bs.toBinaryString().should.eql '10000000000000000000000000000000000000000000000000000000000000001'
+
 describe 'a bitset with bit 0 flipped', ->
   bs = new BitterSet
   bs.flip 0

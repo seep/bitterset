@@ -1,11 +1,10 @@
 {
   "name": "bitterset",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Chris Parker <me@chrisaparker.com>",
   "description": "a fast & simple bitset implementation",
   "main": "./lib/bitterset",
   "scripts": {
-    "build": "coffee --compile --output lib src",
     "test": "mocha --require should --compilers coffee:coffee-script --reporter spec"
   },
   "repository": {
