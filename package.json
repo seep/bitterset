@@ -6,7 +6,7 @@
   "main": "./lib/bitterset",
   "scripts": {
     "build": "coffee --compile --output lib/ src/",
-    "test": "mocha --require should --compilers coffee:coffee-script --reporter spec"
+    "test": "mocha --require should --compilers coffee:coffee-script/register --reporter spec"
   },
   "repository": {
     "type": "git",
@@ -16,7 +16,6 @@
     "bitset",
     "set"
   ],
-  "dependencies": {},
   "devDependencies": {
     "mocha": "^2.0.1",
     "should": "^4.3.0",
