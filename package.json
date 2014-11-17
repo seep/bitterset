@@ -5,6 +5,7 @@
   "description": "a fast & simple bitset implementation",
   "main": "./lib/bitterset",
   "scripts": {
+    "build": "coffee --compile --output lib/ src/",
     "test": "mocha --require should --compilers coffee:coffee-script --reporter spec"
   },
   "repository": {
