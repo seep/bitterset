@@ -1,6 +1,6 @@
 {
   "name": "bitterset",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Chris Parker <me@chrisaparker.com>",
   "description": "a fast & simple bitset implementation",
   "main": "./lib/bitterset",
@@ -17,9 +17,9 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "mocha": "~1.13.0",
-    "should": "~2.0.1",
-    "coffee-script": "~1.6.3"
+    "mocha": "^2.0.1",
+    "should": "^4.3.0",
+    "coffee-script": "^1.8.0"
   },
   "license": "MIT",
   "engines": {
