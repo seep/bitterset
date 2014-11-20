@@ -22,7 +22,8 @@ module.exports = class BitterSet
 
   # Set a bit to true.
   set: (bit) ->
-    # In JavaScript, the bitwise left shift only uses the low 5 bits. In other words, it automatically modulates by 32.
+    # In JavaScript, the bitwise left shift only uses the low 5 bits. In other
+    # words, it automatically modulates by 32.
     @store[bit >> ADDR_BITS] |= (1 << bit)
     return
 
@@ -73,8 +74,8 @@ module.exports = class BitterSet
 
     return (index * WORD_BITS) + offset
 
-  # Returns the index of the first bit that matches `value` before or on the specified `from` index. If no such bit
-  # exists, returns -1.
+  # Returns the index of the first bit that matches `value` before or on the
+  # specified `from` index. If no such bit exists, returns -1.
   previous: (value, from) ->
 
     index = (from >> ADDR_BITS)
@@ -101,9 +102,11 @@ module.exports = class BitterSet
 
     return (index * WORD_BITS) + offset
 
-  # Returns the logical length of the bitset (the index of the highest bit, plus one).
+  # Returns the logical length of the bitset (the index of the highest bit,
+  # plus one).
   length: ->
-    # We need to cull the word store so that the last word in the store is a significant one.
+    # We need to cull the word store so that the last word in the store is
+    # a significant one.
     do @cull
     return 0 if @store.length is 0
     fill = WORD_BITS * (@store.length - 1)
@@ -126,10 +129,12 @@ module.exports = class BitterSet
   or: (set) ->
     # The logical OR is idempotent.
     return if set is @
-    # Since OR is an additive operation, we only need to operate on the words defined by the other set. If the other
-    # set has more words than this set, the OR-equals will silently operate using 0 for the LHS and add the new word
-    # to the store. If the other set has less words than this set, we don't need to operate on our extra words
-    # (because we would be ORing against 0, which does nothing).
+    # Since OR is an additive operation, we only need to operate on the words
+    # defined by the other set. If the other set has more words than this set,
+    # the OR-equals will silently operate using 0 for the LHS and add the new
+    # word to the store. If the other set has less words than this set, we don't
+    # need to operate on our extra words (because we would be ORing against 0,
+    # which does nothing).
     @store[i] |= set.store[i] for i in [0..set.store.length - 1]
     return
 
@@ -137,16 +142,19 @@ module.exports = class BitterSet
   and: (set) ->
     # The logical AND is idempotent.
     return if set is @
-    # Compared to the OR operation, the AND operation requires an extra condition. This time, we operate on the words
-    # defined by our own set. If the other set has more words than this set, the AND operation would result in 0, so
-    # we avoid adding empty words to our store. If the other set has less words than this set, we need to explicitly
-    # operate using 0 for the RHS. Because there is a possibility that we end up with empty words, we end the function
-    # with a cull.
+    # Compared to the OR operation, the AND operation requires an extra
+    # condition. This time, we operate on the words defined by our own set. If
+    # the other set has more words than this set, the AND operation would result
+    # in 0, so we avoid adding empty words to our store. If the other set has
+    # less words than this set, we need to explicitly  operate using 0 for the
+    # RHS. Because there is a possibility that we end up with empty words, we
+    # end the function with a cull.
     @store[i] &= (set.store[i] or 0) for i in [0..@store.length - 1]
     do @cull
     return
 
-  # Perform a logical AND against this bitset, with the complement of the given bitset.
+  # Perform a logical AND against this bitset, with the complement of the given
+  # bitset.
   andnot: (set) ->
     if set is @
       # The logical AND of a set's own compliment is the empty set.
@@ -162,27 +170,32 @@ module.exports = class BitterSet
       # The logical XOR of a set against itself is the empty set.
       do @clear
     else
-      # Like OR, the XOR operation is additive and we only need to operate on the words defined by the other set.
+      # Like OR, the XOR operation is additive and we only need to operate on
+      # the words defined by the other set.
       @store[i] ^= set.store[i] for i in [0..set.store.length]
       do @cull
     return
 
-  # Returns a string representation of this bitset, as a list of bit indexes that are set to true.
+  # Returns a string representation of this bitset, as a list of bit indexes
+  # that are set to true.
   toString: ->
     do @cull
     return "\{#{ bits(word, index) for word, index in @store when word? and word isnt 0 }\}"
 
-  # Returns a string representation of this bitset, as a string of significant bits.
+  # Returns a string representation of this bitset, as a string of significant
+  # bits.
   toBinaryString: ->
     do @cull
-    # When used with Array#reduce, this function takes each word in the store, converts it into a binary string, and
-    # reduces it to a big-endian binary string.
+    # When used with Array#reduce, this function takes each word in the store,
+    # converts it into a binary string, and reduces it to a big-endian binary
+    # string.
     reducer = (string, word, index) ->
-      # This fill string is a left-pad of zeroes using a little Array#join hack. Since the previous word might have
-      # been shorter than the WORD_BIT characters we need, so we left-pad it to keep all our indexes lined up. We
-      # have to add one because Array#join only inserts (n - 1) seperators.
+      # This fill string is a left-pad of zeroes using a little Array#join hack.
+      # Since the previous word might have been shorter than the WORD_BIT
+      # characters we need, so we left-pad it to keep all our indexes lined up.
+      # We have to add one because Array#join only inserts (n - 1) seperators.
       fill = if index > 0 then Array(index * WORD_BITS - string.length + 1).join('0') else ''
       return bstring(word) + fill + string
-    # The Array#reduce function requires a default value when operating on an empty array, so we put it in there just
-    # in case.
+    # The Array#reduce function requires a default value when operating on an
+    # empty array.
     return @store.reduce reducer, ''
