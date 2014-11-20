@@ -1,4 +1,4 @@
-BitterSet = require '../lib/bitterset'
+BitterSet = require '../src/bitterset'
 
 describe 'a new bitset', ->
   bs = new BitterSet
@@ -46,6 +46,22 @@ describe 'a bitset with bit 0 set and cleared', ->
   it 'should look like "" as a binary string', ->
     bs.toBinaryString().should.eql ''
 
+describe 'a bitset with bit 32 set', ->
+  bs = new BitterSet
+  bs.set 32
+  it 'getting bit 32 should be true', ->
+    bs.get(32).should.eql true
+  it 'should have a length of 33', ->
+    bs.length().should.eql 33
+  it 'should have a cardinality of 1', ->
+    bs.cardinality().should.eql 1
+  it 'should have 2 words', ->
+    bs.store.should.have.length 2
+  it 'should look like "{32}" as a string', ->
+    bs.toString().should.eql '{32}'
+  it 'should look like "1000000000000000000000000000000000" as a binary string', ->
+    bs.toBinaryString().should.eql '100000000000000000000000000000000'
+
 describe 'a bitset with bit 0 and bit 31 set', ->
   bs = new BitterSet
   bs.set 0
@@ -87,10 +103,37 @@ describe 'a bitset with bit 0 and bit 32 set', ->
     bs.previous(false, 1).should.eql 1
   it 'the previous clear bit from 32 should be 31', ->
     bs.previous(false, 32).should.eql 31
+  it 'the previous clear bit from 33 should be 33', ->
+    bs.previous(false, 33).should.eql 33
   it 'should look like "{0,32}" as a string', ->
     bs.toString().should.eql '{0,32}'
   it 'should look like "100000000000000000000000000000001" as a binary string', ->
     bs.toBinaryString().should.eql '100000000000000000000000000000001'
+
+describe 'a bitset bit 16 set', ->
+  bs = new BitterSet
+  bs.set 16
+  it 'the next set bit from 0 should be 16', ->
+    bs.next(true, 0).should.eql 16
+  it 'the next set bit from 16 should be 16', ->
+    bs.next(true, 16).should.eql 16
+  it 'the previous set bit from 17 should be 16', ->
+    bs.previous(true, 17).should.eql 16
+  it 'the previous set bit from 32 should be 16', ->
+    bs.previous(true, 32).should.eql 16
+
+describe 'a bitset with a hole', ->
+  bs = new BitterSet
+  bs.set i for i in [0..15]
+  bs.set i for i in [17..31]
+  it 'the next clear bit from 0 should be 16', ->
+    bs.next(false, 0).should.eql 16
+  it 'the next clear bit from 16 should be 16', ->
+    bs.next(false, 16).should.eql 16
+  it 'the previous clear bit from 31 should be 16', ->
+    bs.previous(false, 31).should.eql 16
+  it 'the previous clear bit from 32 should be 32', ->
+    bs.previous(false, 32).should.eql 32
 
 describe 'a bitset with bit 0 and bit 32 set, and bit 32 cleared', ->
   bs = new BitterSet

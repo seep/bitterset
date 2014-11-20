@@ -1,4 +1,4 @@
-BitterSet = require '../lib/bitterset'
+BitterSet = require '../src/bitterset'
 
 describe '{} OR {0}', ->
   a = new BitterSet

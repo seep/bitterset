@@ -1,43 +1,15 @@
-WORD_BITS = 32
-ADDR_BITS = 5
+bstring  = require './bstring'
+highest  = require './highest'
+lowest   = require './lowest'
+position = require './position'
+weight   = require './weight'
 
-HAMMING_TABLE = [
-  0, # 0b0000
-  1, # 0b0001
-  1, # 0b0010
-  2, # 0b0011
-  1, # 0b0100
-  2, # 0b0101
-  2, # 0b0110
-  3, # 0b0111
-  1, # 0b1000
-  2, # 0b1001
-  2, # 0b1010
-  3, # 0b1011
-  2, # 0b1100
-  3, # 0b1101
-  3, # 0b1110
-  4  # 0b1111
-]
-
-# Find the hamming weight of a word in the bitset.
-weight = (word) ->
-  HAMMING_TABLE[ (word >> 0x00) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x04) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x08) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x0C) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x10) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x14) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x18) & 0xF ] +
-  HAMMING_TABLE[ (word >> 0x1C) & 0xF ]
+WORD_BITS  = 32
+ADDR_BITS  = 5
 
 # Search a word for true bits and return an array of bit indexes.
 bits = (word, offset = 0) ->
   (bit + offset * WORD_BITS) for bit in [0..WORD_BITS - 1] when (word & (1 << bit)) isnt 0x0
-
-# Convert a word into an unsigned binary string. We need to do an empty unsigned right-shift to coerce the word into
-# a uint32, or the toString function will misrepresent bit 31.
-bstring = (word) -> (word >>> 0).toString(2)
 
 module.exports = class BitterSet
 
@@ -59,7 +31,7 @@ module.exports = class BitterSet
     if bit?
       @store[bit >> ADDR_BITS] &= ~(1 << bit)
     else
-      @store = [ ]
+      @store = []
     return
 
   # Flip the boolean value of a bit.
@@ -67,27 +39,67 @@ module.exports = class BitterSet
     @store[bit >> ADDR_BITS] ^= (1 << bit)
     return
 
-  # Returns the index of the first bit that matches `value` after or on the specified `from` index. If no such bit
-  # exists, returns -1.
+  # Returns the index of the first bit that matches `value` after or on the
+  # specified `from` index. If no such bit exists, returns -1.
   next: (value, from) ->
-    length = do @length
-    while from < length
-      return from if @get(from) is value
-      from += 1
-    # If we are looking for the next false value, and we've run out of set bits, then we can just return the current
-    # index (because an unset bit is inherintly false). Otherwise, we need to return the error index (-1) to indicate
-    # that there is no set bit after the given index.
-    if value is false then return from else return -1
+
+    index = (from >> ADDR_BITS)
+    word  = @store[index] or 0
+    bit   = 1 << from
+
+    # The mask is the bit with no leading zeroes.
+    # bit  == 0b00010000
+    # mask == 0b11110000
+    mask = ~(bit - 1)
+
+    # If we are looking for true values, we need to zero-fill everything less
+    # than the index. If we are looking for false values, we need to one-fill
+    # everything less than the index.
+    if value then (word &= mask) else (word |= ~mask)
+
+    # Now we can start doing the coarse check and skip any empty or full words.
+    until index >= @store.length or ((value and word) or (not value and ~word))
+      # We don't need to mask any values on the next word because all of the
+      # indexes are after the specified index.
+      index++
+      word = @store[index] or 0
+
+    # If we're looking for a set bit, and have checked all of the words in the
+    # store, return the error bit. There is always another unset bit (until the
+    # store overflows).
+    return -1 if value and index >= @store.length
+
+    offset = if (index < @store.length) then (position lowest value, word) else 0
+
+    return (index * WORD_BITS) + offset
 
   # Returns the index of the first bit that matches `value` before or on the specified `from` index. If no such bit
   # exists, returns -1.
   previous: (value, from) ->
-    until from < 0
-      return from if @get(from) is value
-      from -= 1
-    # Unlike the `next` function, there is no special logic here; if there are no previous bits left, just return the
-    # error index.
-    return -1
+
+    index = (from >> ADDR_BITS)
+    word  = @store[index] or 0
+    bit   = 1 << from
+
+    # The mask is the bit with no trailing zeroes.
+    # bit  == 0b00010000
+    # mask == 0b00011111
+    mask = ((bit - 1) << 1) + 1
+
+    if value then (word &= mask) else (word |= ~mask)
+
+    # Now we can start doing the coarse check and skip any empty or full words.
+    until index < 0 or ((value and word) or (not value and ~word))
+      index--
+      word = @store[index] or 0
+
+    # Unlike the `next` function, there is no special logic here for unset bits;
+    # if there are no previous bits left, just return the error index.
+    return -1 if index < 0
+
+    offset = position highest value, word
+
+    return (index * WORD_BITS) + offset
 
   # Returns the logical length of the bitset (the index of the highest bit, plus one).
   length: ->
@@ -107,7 +119,7 @@ module.exports = class BitterSet
   cull: ->
     while @store.length > 0
       tail = @store[@store.length - 1]
-      if not tail? or tail is 0x0 then @store.pop() else break
+      if not tail then @store.pop() else break
     return
 
   # Perform a logical OR against this bitset.
