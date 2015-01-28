@@ -1,4 +1,4 @@
-BitterSet
+bitterset
 =========
 [![Build Status](https://travis-ci.org/atonparker/bitterset.png?branch=master)](https://travis-ci.org/atonparker/bitterset)
 
@@ -11,6 +11,9 @@ Installation
 
 Methods
 -------
+
+#### new BitterSet()
+Create a new bitset.
 
 #### get(bit)
 Get the boolean value of a bit.
