@@ -1,28 +1,23 @@
 {
   "name": "bitterset",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Chris Parker <me@chrisaparker.com>",
   "description": "a fast & simple bitset implementation",
-  "main": "./lib/bitterset",
+  "keywords": [ "bitset", "set" ],
+  "main": "lib/bitterset.js",
   "scripts": {
-    "build": "coffee --compile --output lib/ src/",
-    "test": "mocha --require should --compilers coffee:coffee-script/register --reporter spec"
+    "test": "mocha --require should --compilers coffee:coffee-script/register --reporter spec",
+    "build": "coffee --bare --compile --output lib/ src/",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/atonparker/bitterset.git"
   },
-  "keywords": [
-    "bitset",
-    "set"
-  ],
   "devDependencies": {
-    "mocha": "^2.0.1",
-    "should": "^4.3.0",
-    "coffee-script": "^1.8.0"
+    "coffee-script": "^1.8.0",
+    "mocha": "^2.1.0",
+    "should": "^4.6.1"
   },
-  "license": "MIT",
-  "engines": {
-    "node": ">=0.10"
-  }
+  "license": "MIT"
 }
