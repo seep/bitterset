@@ -2,59 +2,60 @@ BitterSet
 =========
 [![Build Status](https://travis-ci.org/atonparker/bitterset.png?branch=master)](https://travis-ci.org/atonparker/bitterset)
 
-__BitterSet__ aims to be a a fast &amp; simple BitSet implementation consistent with the [Java BitSet class](http://docs.oracle.com/javase/7/docs/api/java/util/BitSet.html). The set will automatically grow and shrink to accomodate the largest significant bit.
+__bitterset__ aims to be a a fast &amp; simple BitSet implementation consistent with the [Java BitSet class](http://docs.oracle.com/javase/7/docs/api/java/util/BitSet.html). The set will automatically grow and shrink to accomodate the largest significant bit.
+
+Installation
+------------
+
+`npm install --save bitterset`
 
 Methods
 -------
 
-<dl>
+#### get(bit)
+Get the boolean value of a bit.
 
-  <dt>get(bit)</dt>
-  <dd>Get the boolean value of a bit.</dd>
+#### set(bit)
+Set a bit to true.
 
-  <dt>set(bit)</dt>
-  <dd>Set a bit to true.</dd>
+#### clear(bit)
+Set a bit to false, or set all bits to false if no bit is specified.
 
-  <dt>clear(bit)</dt>
-  <dd>Set a bit to false, or set all bits to false if no bit is specified.</dd>
+#### flip(bit)
+Flip the boolean value of a bit.
 
-  <dt>flip(bit)</dt>
-  <dd>Flip the boolean value of a bit.</dd>
+#### next(value, from)
+Returns the index of the first bit that matches `value` after or on the specified `from` index. If no such bit exists, returns -1.
 
-  <dt>next(value, from)</dt>
-  <dd>Returns the index of the first bit that matches `value` after or on the specified `from` index. If no such bit exists, returns -1.</dd>
+#### previous(value, from)
+Returns the index of the first bit that matches `value` before or on the specified `from` index. If no such bit exists, returns -1.
 
-  <dt>previous(value, from)</dt>
-  <dd>Returns the index of the first bit that matches `value` before or on the specified `from` index. If no such bit exists, returns -1.</dd>
+#### length()
+Returns the logical length of the bitset (the index of the highest bit, plus one).
 
-  <dt>length()</dt>
-  <dd>Returns the logical length of the bitset (the index of the highest bit, plus one).</dd>
+#### cardinality()
+Returns the cardinality of the bitset (the number of bits set to true).
 
-  <dt>cardinality()</dt>
-  <dd>Returns the cardinality of the bitset (the number of bits set to true).</dd>
+#### cull()
+Remove any unused words from the end of the bitset.
 
-  <dt>cull()</dt>
-  <dd>Remove any unused words from the end of the bitset.</dd>
+#### or(set)
+Perform a logical OR against this bitset.
 
-  <dt>or(set)</dt>
-  <dd>Perform a logical OR against this bitset.</dd>
+#### and(set)
+Perform a logical AND against this bitset.
 
-  <dt>and(set)</dt>
-  <dd>Perform a logical AND against this bitset.</dd>
+#### andnot(set)
+Perform a logical AND against this bitset, with the complement of the given bitset.
 
-  <dt>andnot(set)</dt>
-  <dd>Perform a logical AND against this bitset, with the complement of the given bitset.</dd>
+#### xor(set)
+Perform a logical XOR against this bitset.
 
-  <dt>xor(set)</dt>
-  <dd>Perform a logical XOR against this bitset.</dd>
+#### toString()
+Returns a string representation of this bitset, as a list of bit indexes that are set to true.
 
-  <dt>toString()</dt>
-  <dd>Returns a string representation of this bitset, as a list of bit indexes that are set to true.</dd>
-
-  <dt>toBinaryString()</dt>
-  <dd>Returns a string representation of this bitset, as a string of significant bits.</dd>
-
-</dl>
+#### toBinaryString()
+Returns a string representation of this bitset, as a string of significant bits.
 
 Examples
 --------
@@ -111,28 +112,4 @@ Combining multiple sets:
 Testing
 -------
 
-BitterSet uses [Mocha](http://visionmedia.github.io/mocha/) for testing. To run the test suite, call `npm test` in the project directory.
-
-License
--------
-
-The MIT License (MIT)
-
-Copyright (c) 2013 Chris Parker
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+__bitterset__ uses [Mocha](http://mochajs.org) for testing. To run the test suite, call `npm test` in the project directory.
