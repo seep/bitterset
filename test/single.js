@@ -3,14 +3,12 @@
 const test = require('tape');
 const bitterset = require('..');
 
-test('a new bitset', function(assert) {
+test('empty', function(assert) {
 
   let bs = bitterset();
 
   assert.is(bs.length(), 0);
   assert.is(bs.cardinality(), 0);
-
-  assert.same(bs.indexes(), []);
 
   assert.end();
 
@@ -25,21 +23,18 @@ test('setting', function(assert) {
   assert.is(bs.get(0), true);
   assert.is(bs.length(), 1);
   assert.is(bs.cardinality(), 1);
-  assert.same(bs.indexes(), [0]);
 
   bs.set(31);
 
   assert.is(bs.get(31), true);
   assert.is(bs.length(), 32);
   assert.is(bs.cardinality(), 2);
-  assert.same(bs.indexes(), [0, 31]);
 
   bs.set(32);
 
   assert.is(bs.get(32), true);
   assert.is(bs.length(), 33);
   assert.is(bs.cardinality(), 3);
-  assert.same(bs.indexes(), [0, 31, 32]);
 
   assert.end();
 
@@ -56,22 +51,23 @@ test('clearing', function(assert) {
   assert.is(bs.length(), 32);
   assert.is(bs.cardinality(), 2);
 
-  assert.same(bs.indexes(), [0, 31]);
-
   assert.end();
 
 });
 
-test('searching with a pip', function(assert) {
+test('iterating with a pip', function(assert) {
 
   let bs = bitterset();
 
   bs.set(16);
 
-  assert.is(bs.next(true, 0), 16);
-  assert.is(bs.next(true, 16), 16);
-  assert.is(bs.previous(true, 17), 16);
-  assert.is(bs.previous(true, 32), 16);
+  let forwards = bs.forwards(true, 0);
+  assert.is(forwards.next().value, 16);
+  assert.is(forwards.next().value, -1);
+
+  let backwards = bs.backwards(true, 32);
+  assert.is(backwards.next().value, 16);
+  assert.is(backwards.next().value, -1);
 
   assert.end();
 
@@ -81,13 +77,18 @@ test('searching with a hole', function(assert) {
 
   let bs = bitterset();
 
-  for (let i = 0; i < 16; i++) bs.set(i);
-  for (let i = 17; i < 32; i++) bs.set(i);
+  for (let i = 0; i < 32; i++) bs.set(i);
+  bs.clear(16);
 
-  assert.is(bs.next(false, 0), 16);
-  assert.is(bs.next(false, 16), 16);
-  assert.is(bs.previous(false, 31), 16);
-  assert.is(bs.previous(false, 32), 32);
+  let forwards = bs.forwards(false, 0);
+  assert.is(forwards.next().value, 16);
+  assert.is(forwards.next().value, 32);
+
+  debugger;
+
+  let backwards = bs.backwards(false, 31);
+  assert.is(backwards.next().value, 16);
+  assert.is(backwards.next().value, -1);
 
   assert.end();
 
@@ -100,16 +101,26 @@ test('searching with two words', function(assert) {
   bs.set(0);
   bs.set(32);
 
-  assert.is(bs.next(true, 0), 0);
-  assert.is(bs.next(true, 1), 32);
-  assert.is(bs.next(true, 33), -1);
+  debugger;
 
-  assert.is(bs.previous(true, 0), 0);
-  assert.is(bs.previous(true, 31), 0);
-  assert.is(bs.previous(false, 0), -1);
-  assert.is(bs.previous(false, 1), 1);
-  assert.is(bs.previous(false, 32), 31);
-  assert.is(bs.previous(false, 33), 33);
+  let forwards = bs.forwards(true, 0);
+  assert.is(forwards.next().value, 0);
+  assert.is(forwards.next().value, 32);
+  assert.is(forwards.next().value, -1);
+
+  let backwards = bs.backwards(true, 32);
+  assert.is(backwards.next().value, 32);
+  assert.is(backwards.next().value, 0);
+  assert.is(backwards.next().value, -1);
+
+  backwards = bs.backwards(false, 1);
+  assert.is(backwards.next().value, 1);
+
+  backwards = bs.backwards(false, 32);
+  assert.is(backwards.next().value, 31);
+
+  backwards = bs.backwards(false, 33);
+  assert.is(backwards.next().value, 33);
 
   assert.end();
 

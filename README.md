@@ -9,50 +9,47 @@ __bitterset__ aims to be a a fast &amp; simple set of bits. The set will automat
 Methods
 -------
 
-#### bitterset()
+#### `bitterset()`
 Create a new bitset.
 
-#### bitterset#get(index)
-Get the boolean value of a bit.
+#### `bitterset#get(index)`
+Get the value of a bit.
 
-#### bitterset#set(index)
+#### `bitterset#set(index)`
 Set a bit to true.
 
-#### bitterset#clear(index)
-Set a bit to false, or set all bits to false if no bit is specified.
+#### `bitterset#clear(index)`
+Set one or all of the bits to false.
 
-#### bitterset#flip(index)
-Flip the boolean value of a bit.
+#### `bitterset#flip(index)`
+Flip the value of a bit.
 
-#### bitterset#next(set, start)
-Returns the index of the first set or clear bit after or on the starting index. If no such bit exists, returns -1.
+#### `bitterset#forwards(value, start = 0)`
+Returns a forward iterator over the bitset that will yield the next set or unset bit. If you're iterating over set bits, when the iterator is done it will return -1. If you're iterating over unset bits, the iterator will continue indefinitely.
 
-#### bitterset#previous(set, start)
-Returns the index of the first set or clear bit before or on the starting index. If no such bit exists, returns -1.
+#### `bitterset#backwards(value, start = length)`
+Returns a backwards iterator over the bitset that will yield the next set or unset bit. When you reach the beginning of the set, the iterator will return -1.
 
-#### bitterset#length()
-Returns the logical length of the bitset (the index of the highest bit, plus one).
+#### `bitterset#length()`
+Returns the length of the bitset (the index of the highest set bit, plus one).
 
-#### bitterset#cardinality()
+#### `bitterset#cardinality()`
 Returns the cardinality of the bitset (the number of set bits).
 
-#### bitterset#cull()
+#### `bitterset#cull()`
 Remove any unused words from the end of the bitset.
 
-#### bitterset#or(that)
+#### `bitterset#or(that)`
 Perform a logical OR against this bitset.
 
-#### bitterset#and(that)
+#### `bitterset#and(that)`
 Perform a logical AND against this bitset.
 
-#### bitterset#andnot(that)
+#### `bitterset#andnot(that)`
 Perform a logical AND against this bitset, with the complement of the given bitset.
 
-#### bitterset#xor(that)
+#### `bitterset#xor(that)`
 Perform a logical XOR against this bitset.
-
-#### bitterset#indexes()
-Get an array of the indexes of set bits. This is pretty expensive so don't do it often.
 
 Examples
 --------
@@ -72,13 +69,13 @@ bs.get(0); // true
 bs.get(8); // false
 
 // Clear an individual bit.
-bs.clear(46);
+bs.set(46, false);
 
 // Clear all of the bits.
 bs.clear();
 ```
 
-Getting the next set bit on the set:
+Iterating over the set:
 
 ```javascript
 let bs = bitterset();
@@ -87,11 +84,12 @@ bs.set(0);
 bs.set(5);
 bs.set(9);
 
-bs.next(true);   // 0
-bs.next(true, 1); // 5
+let iter = bs.forwards(true);
 
-// Iterate over the set bits.
-for (let i = 0; i >= 0; i = bs.next(true, i)) { ... }
+iter.next().value == 0;
+iter.next().value == 5;
+iter.next().value == 9;
+
 ```
 
 Combining multiple sets:

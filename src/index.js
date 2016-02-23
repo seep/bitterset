@@ -2,10 +2,7 @@
 
 // Poor man's decomposition.
 const util      = require('./util');
-const position  = util.position;
 const weight    = util.weight;
-const lowest    = util.lowest;
-const highest   = util.highest;
 const stringify = util.stringify;
 
 // The number of bits pre word.
@@ -29,7 +26,7 @@ function bitterset() {
 module.exports = bitterset;
 
 /**
- * Get the boolean value of a bit.
+ * Get the value of a bit.
  */
 bitterset.prototype.get = function(index) {
 
@@ -39,26 +36,21 @@ bitterset.prototype.get = function(index) {
 }
 
 /**
- * Set a bit to true.
- * @param index - The index of the bit.
- */
-bitterset.prototype.set = function(index) {
+ * Set the value of a bit.
 
-    // In JavaScript, the bitwise left shift only uses the low 5 bits. In other
-    // words, it automatically modulates by 32.
+ * @param index - The index of the bit.
+ * @param value - The value to set the bit to. Defaults to true.
+ */
+bitterset.prototype.set = function(index, value) {
+
+  if (value === undefined) value = true;
+
+  // In JavaScript, the bitwise left shift only uses the low 5 bits. In other
+  // words, it automatically modulates by 32.
+
+  if (value) {
+
     this.store[index >> ADDR_BITS] |= (1 << index);
-
-}
-
-/**
- * Set a bit to false, or set all bits to false if no bit is specified.
- * @param index - The index of the bit.
- */
-bitterset.prototype.clear = function(index) {
-
-  if (index === undefined) {
-
-    this.store = [];
 
   } else {
 
@@ -69,7 +61,27 @@ bitterset.prototype.clear = function(index) {
 }
 
 /**
- * Flip the boolean value of a bit.
+ * Set one or all of the bits in the set to false.
+
+ * @param index - The index of the bit.
+ */
+bitterset.prototype.clear = function(index) {
+
+  if (index === undefined) {
+
+    this.store = [];
+
+  } else {
+
+    this.set(index, false);
+
+  }
+
+}
+
+/**
+ * Flip the value of a bit.
+
  * @param index - The index of the bit.
  */
 bitterset.prototype.flip = function(index) {
@@ -79,55 +91,51 @@ bitterset.prototype.flip = function(index) {
 }
 
 /**
- * Returns the index of the first set or clear bit after or on the starting
- * index. If no such bit exists, returns -1.
+ * Returns a forward iterator over the bitset that will yield the next set or
+ * unset bit.
  *
- * @param set - True for the next set bit, false for the next clear bit.
+ * @param value - True to iterate over set bits, false to iterate over clear bits.
  */
-bitterset.prototype.next = function(set, start) {
+bitterset.prototype.forwards = function*(value, start) {
 
-  start = (start === undefined) ? 0 : start;
+  if (start === undefined) start = 0;
 
-  let wordindex = (start >> ADDR_BITS);
-  let word      = this.store[wordindex] || 0;
-  let bit       = 1 << start;
+  // The index of the first word to look at.
+  let wordindex = start >> ADDR_BITS;
 
-  // The mask is the bit with no leading zeroes.
-  // bit  == 0b00010000
-  // mask == 0b11110000
-  let mask = ~(bit - 1);
+  // The index of the first bit in the word to look at.
+  let bitindex = start % WORD_BITS;
 
-  // If we are looking for a set bit, we need to zero-fill everything less than
-  // the index. If we are looking for a clear bit, we need to one-fill everything
-  // less than the index. Otherwise we might get a false positive on the coarse
-  // check.
-  set ? (word &= mask) : (word |= ~mask);
-
-  // Now we can start doing the coarse check and skip any empty or full words.
   while (wordindex < this.store.length) {
 
-    // If we're looking for a set bit, break on non-zeroed words. If we're
-    // looking for a clear bit, break on zeroed words.
-    if (set ? word : ~word) break;
+    let word = this.store[wordindex] || 0;
 
-    // We don't need to mask any values on the next word because all of the
-    // indexes are after the specified index.
-    word = this.store[++wordindex] || 0;
+    // If we're looking for a false value, flip the whole word.
+    if (!value) word = ~word;
+
+    // Skip words that don't have _any_ valid bits.
+    let valid = word !== 0x0;
+
+    // TODO could this be sped up by continually masking out the last returned
+    // bit and using a bitshift op to find the highest/lowest bit.
+    while (valid && bitindex < WORD_BITS) {
+
+      let mask = 1 << bitindex;
+      if (word & mask) yield (wordindex * WORD_BITS) + bitindex;
+
+      ++bitindex;
+
+    }
+
+    bitindex = 0;
+    ++wordindex;
 
   }
 
   // If we're looking for a set bit, and have checked all of the words in the
-  // store, return the error bit. There is always another unset bit (until the
-  // store overflows).
-  if (set && (wordindex >= this.store.length)) return -1
-
-  // Find the position of the target bit in the word.
-  let offset = (wordindex < this.store.length) ? position(lowest(set, word)) : 0
-
-  // Add the offset of the bit to the offset of the word for the final index.
-  return (wordindex * WORD_BITS) + offset;
-
-
+  // store, return the error bit. In contrast, is always another unset bit
+  // (until the store overflows).
+  return value ? -1 : (this.store.length * WORD_BITS);
 
 }
 
@@ -137,32 +145,39 @@ bitterset.prototype.next = function(set, start) {
  *
  * @param set - True for the previous set bit, false for the previous clear bit.
  */
-bitterset.prototype.previous = function(set, start) {
-
-  start = (start === undefined) ? (this.store.length * WORD_BITS) : start;
+bitterset.prototype.backwards = function*(value, start) {
 
   // This is largely similar to bitterset#next. Refer to the comments there.
 
-  let wordindex = (start >> ADDR_BITS);
-  let word      = this.store[wordindex] || 0;
-  let bit       = 1 << start;
+  if (start === undefined) start = (this.store.length * WORD_BITS);
 
-  let mask = ((bit - 1) << 1) + 1;
-  set ? (word &= mask) : (word |= ~mask)
+  let wordindex = start >> ADDR_BITS;
+  let bitindex = start % WORD_BITS;
 
   while (wordindex >= 0) {
 
-    if (set ? word : ~word) break;
-    word = this.store[--wordindex] || 0;
+    let word = this.store[wordindex] || 0;
+    if (!value) word = ~word;
+
+    let valid = word !== 0x0;
+
+    while (valid && bitindex >= 0) {
+
+      let mask = 1 << bitindex;
+      if (word & mask) yield (wordindex * WORD_BITS) + bitindex;
+
+      --bitindex;
+
+    }
+
+    bitindex = WORD_BITS - 1;
+    --wordindex;
 
   }
 
   // Unlike the `next` function, there is no special logic here for unset bits;
   // if there are no previous bits left, just return the error index.
-  if (wordindex < 0) return -1;
-
-  let offset = position(highest(set, word));
-  return (wordindex * WORD_BITS) + offset;
+  return -1;
 
 }
 
@@ -178,7 +193,7 @@ bitterset.prototype.length = function() {
 
   if (this.store.length === 0) return 0;
 
-  let fill = WORD_BITS * (this.store.length - 1);
+  let fill = (this.store.length - 1) * WORD_BITS;
   let tail = stringify(this.store[this.store.length - 1]).length;
 
   return fill + tail;
@@ -302,68 +317,5 @@ bitterset.prototype.xor = function(that) {
   }
 
   this.cull();
-
-}
-
-/**
- * Get an array of set indexes.
- */
-bitterset.prototype.indexes = function() {
-
-  this.cull();
-
-  let result = [];
-
-  for (let i = 0; i < this.store.length; i++) {
-
-    let word = this.store[i];
-
-    // Skip empty words.
-    if (!word) continue;
-
-    for (let j = 0; j < WORD_BITS; j++) {
-
-      let mask = 1 << j;
-      if (word & mask) result.push(i * WORD_BITS + j);
-
-    }
-
-  }
-
-  return result;
-
-}
-
-/**
- * Represents the bitset as a string of set indexes. This is similar to
- * Set#toString.
- */
-bitterset.prototype.toString = function() {
-
-  return this.indexes().toString();
-
-}
-
-/**
- * Represents the bitset as a string of set bits. This is the raw representation
- * of the underlying bit store.
- */
-bitterset.prototype.toBinaryString = function () {
-
-  this.cull();
-
-  let reducer = function(result, word, index) {
-
-    // This fill string is a left-pad of zeroes using a little Array#join hack.
-    // Since the previous word might have been shorter than the WORD_BIT
-    // characters we need, so we left-pad it to keep all our indexes lined up.
-    // We have to add one because Array#join only inserts (n - 1) seperators.
-    fill = (index > 0) ? Array(index * WORD_BITS - result.length + 1).join('0') : '';
-
-    return stringify(word) + fill + result;
-
-  }
-
-  return this.store.reduce(reducer, '');
 
 }
