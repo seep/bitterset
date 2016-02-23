@@ -88,7 +88,7 @@ bs.set(5);
 bs.set(9);
 
 bs.next(true);   // 0
-bs.next(true, 1) // 5
+bs.next(true, 1); // 5
 
 // Iterate over the set bits.
 for (let i = 0; i >= 0; i = bs.next(true, i)) { ... }
@@ -119,4 +119,4 @@ a.andnot(c); // a is now {1}
 Testing
 -------
 
-__bitterset__ uses [Tape](https://github.com/substack/tape) for testing. Simply run `npm test` in the project directory.
+__bitterset__ uses [tape](https://github.com/substack/tape) for testing. Simply run `npm test` in the project directory.
