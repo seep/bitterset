@@ -6,8 +6,7 @@ __bitterset__ aims to be a fast &amp; simple set of bits. The set will automatic
 
 `npm install --save bitterset`
 
-Examples
---------
+## Examples
 
 Getting, setting, and clearing values on the set:
 
@@ -24,7 +23,7 @@ bs.get(0); // true
 bs.get(8); // false
 
 // Clear an individual bit.
-bs.set(46, false);
+bs.clear(46);
 
 // Clear all of the bits.
 bs.clear();
@@ -39,11 +38,8 @@ bs.set(0);
 bs.set(5);
 bs.set(9);
 
-let iter = bs.forwards(true);
-
-iter.next().value == 0;
-iter.next().value == 5;
-iter.next().value == 9;
+for (let i of bs.forwards(true)) console.log(i); // 0 5 9
+for (let i of bs.backwards(true)) console.log(i); // 9 5 0
 
 ```
 
@@ -69,8 +65,7 @@ a.andnot(c); // a is now {1}
 
 ```
 
-API
--------
+## API
 
 #### `bitterset()`
 Create a new bitset.
@@ -114,7 +109,12 @@ Perform a logical AND against this bitset, with the complement of the given bits
 #### `bitterset#xor(that)`
 Perform a logical XOR against this bitset.
 
-Testing
--------
+## Performance
+
+There are a few performance tests of iteration in the `perf` folder. Performance is decent: a densly packed bitset (1/10 bits set) has ~5 million iterations per second. A sparsely packed bitset (1/10000 bits set) has ~3 million iterations per second. A worst case where 1/1000000 bits has only 200 iterations per second. 
+
+Measurements were taken on a 2015 Macbook Pro. Any improvements are welcome!
+
+## Testing
 
 __bitterset__ uses [tape](https://github.com/substack/tape) for testing. Simply run `npm test` in the project directory.

@@ -55,19 +55,19 @@ test('clearing', function(assert) {
 
 });
 
-test('iterating with a pip', function(assert) {
+test('searching with a pip', function(assert) {
 
   let bs = bitterset();
 
   bs.set(16);
 
-  let forwards = bs.forwards(true, 0);
-  assert.is(forwards.next().value, 16);
-  assert.is(forwards.next().value, -1);
+  let next = bs.forwards(true, 0).next();
+  assert.is(next.value, 16);
+  assert.is(next.done, true);
 
-  let backwards = bs.backwards(true, 32);
-  assert.is(backwards.next().value, 16);
-  assert.is(backwards.next().value, -1);
+  next = bs.backwards(true, 32).next();
+  assert.is(next.value, 16);
+  assert.is(next.done, true);
 
   assert.end();
 
@@ -80,47 +80,71 @@ test('searching with a hole', function(assert) {
   for (let i = 0; i < 32; i++) bs.set(i);
   bs.clear(16);
 
-  let forwards = bs.forwards(false, 0);
-  assert.is(forwards.next().value, 16);
-  assert.is(forwards.next().value, 32);
+  // Forwwards
 
-  debugger;
+  let iter = bs.forwards(false, 0);
 
-  let backwards = bs.backwards(false, 31);
-  assert.is(backwards.next().value, 16);
-  assert.is(backwards.next().value, -1);
+  let next = iter.next();
+  assert.is(next.value, 16);
+
+  // Forward search for a false value is infinite.
+  next = iter.next();
+  assert.is(next.value, 32);
+
+  // Backwards
+
+  iter = bs.backwards(false, 31);
+
+  next = iter.next();
+  assert.is(next.value, 16);
+  assert.is(next.done, true);
 
   assert.end();
 
 });
 
-test('searching with two words', function(assert) {
+test('searching with a few words', function(assert) {
 
   let bs = bitterset();
 
   bs.set(0);
   bs.set(32);
+  bs.set(47);
+  bs.set(64);
 
-  debugger;
+  // Forwards
 
-  let forwards = bs.forwards(true, 0);
-  assert.is(forwards.next().value, 0);
-  assert.is(forwards.next().value, 32);
-  assert.is(forwards.next().value, -1);
+  let iter = bs.forwards(true, 0);
 
-  let backwards = bs.backwards(true, 32);
-  assert.is(backwards.next().value, 32);
-  assert.is(backwards.next().value, 0);
-  assert.is(backwards.next().value, -1);
+  let next = iter.next();
+  assert.is(next.value, 0);
 
-  backwards = bs.backwards(false, 1);
-  assert.is(backwards.next().value, 1);
+  next = iter.next();
+  assert.is(next.value, 32);
 
-  backwards = bs.backwards(false, 32);
-  assert.is(backwards.next().value, 31);
+  next = iter.next();
+  assert.is(next.value, 47);
 
-  backwards = bs.backwards(false, 33);
-  assert.is(backwards.next().value, 33);
+  next = iter.next();
+  assert.is(next.value, 64);
+  assert.is(next.done, true);
+
+  // Backwards
+
+  iter = bs.backwards(true, 64);
+
+  next = iter.next();
+  assert.is(next.value, 64);
+
+  next = iter.next();
+  assert.is(next.value, 47);
+
+  next = iter.next();
+  assert.is(next.value, 32);
+
+  next = iter.next();
+  assert.is(next.value, 0);
+  assert.is(next.done, true);
 
   assert.end();
 

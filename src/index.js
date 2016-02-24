@@ -2,7 +2,10 @@
 
 // Poor man's decomposition.
 const util      = require('./util');
+const position  = util.position;
 const weight    = util.weight;
+const lowest    = util.lowest;
+const highest   = util.highest;
 const stringify = util.stringify;
 
 // The number of bits pre word.
@@ -10,6 +13,9 @@ const WORD_BITS = 32;
 
 // The number of bits to shift a bit index to get a word index.
 const ADDR_BITS = 5;
+
+const EMPTY_WORD = 0x0;
+const FULL_WORD = 0xffffffff;
 
 /**
  * Construct a new bitset.
@@ -104,26 +110,60 @@ bitterset.prototype.forwards = function*(value, start) {
   let wordindex = start >> ADDR_BITS;
 
   // The index of the first bit in the word to look at.
-  let bitindex = start % WORD_BITS;
+  let bitindex = start % ADDR_BITS;
 
-  while (wordindex < this.store.length) {
+  // We have to keep track of the next (real) result of the generator, as well
+  // as a peek at the value after that. This is we can return instead of yield
+  // the last value.
+  let prev = null;
 
+  // A fowards search for a false value will never end. A forward search for a
+  // true value can only go to the end of the store.
+  while (value === false || wordindex < this.store.length) {
+
+    // Is this the final loop?
+    let final = (value === true) && (wordindex === this.store.length - 1);
+
+    // The store is sparse, so account for undefined words.
     let word = this.store[wordindex] || 0;
 
-    // If we're looking for a false value, flip the whole word.
+    // If we're looking for a false value, flip the whole word. This just
+    // eliminates most of the branching in the loop.
     if (!value) word = ~word;
 
-    // Skip words that don't have _any_ valid bits.
-    let valid = word !== 0x0;
+    // Skip words that have no bits at all, and skip bits outside the word.
+    while (word !== 0 && bitindex < WORD_BITS) {
 
-    // TODO could this be sped up by continually masking out the last returned
-    // bit and using a bitshift op to find the highest/lowest bit.
-    while (valid && bitindex < WORD_BITS) {
+      // Mask the word  with no leading zeroes.
+      // bitindex == 4
+      // bit      == 0b00010000
+      // mask     == 0b11110000
+      let bit = 1 << bitindex;
+      let mask = ~(bit - 1);
+      word = word & mask;
 
-      let mask = 1 << bitindex;
-      if (word & mask) yield (wordindex * WORD_BITS) + bitindex;
+      let offset = lowest(word);
+      let result = wordindex * WORD_BITS + offset;
 
-      ++bitindex;
+      if (final && offset >= WORD_BITS) {
+
+        // The last word is a special case. An offset greater than the word bits
+        // means this value is off the end of the set. We have to return
+        // (instead of yield) the last value
+        return prev;
+
+      } else if (prev !== null && offset < WORD_BITS) {
+
+        yield prev;
+        prev = result;
+
+      } else if (offset < WORD_BITS) {
+
+        prev = result;
+
+      }
+
+      bitindex = offset + 1;
 
     }
 
@@ -131,11 +171,6 @@ bitterset.prototype.forwards = function*(value, start) {
     ++wordindex;
 
   }
-
-  // If we're looking for a set bit, and have checked all of the words in the
-  // store, return the error bit. In contrast, is always another unset bit
-  // (until the store overflows).
-  return value ? -1 : (this.store.length * WORD_BITS);
 
 }
 
@@ -153,20 +188,41 @@ bitterset.prototype.backwards = function*(value, start) {
 
   let wordindex = start >> ADDR_BITS;
   let bitindex = start % WORD_BITS;
+  let prev = null;
 
   while (wordindex >= 0) {
+
+    let final = wordindex === 0;
 
     let word = this.store[wordindex] || 0;
     if (!value) word = ~word;
 
-    let valid = word !== 0x0;
+    while (word !== 0 && bitindex >= 0) {
 
-    while (valid && bitindex >= 0) {
+      let bit = 1 << bitindex;
+      let mask = ((bit - 1) << 1) + 1;
+      word = word & mask;
 
-      let mask = 1 << bitindex;
-      if (word & mask) yield (wordindex * WORD_BITS) + bitindex;
+      let offset = highest(word);
+      let result = wordindex * WORD_BITS + offset;
 
-      --bitindex;
+      if (final && result === 0) {
+
+        if (word & 1 === 1) { yield prev; return result; }
+        else return prev;
+
+      } else if (prev !== null && offset < WORD_BITS) {
+
+        yield prev;
+        prev = result;
+
+      } else if (offset < WORD_BITS) {
+
+        prev = result;
+
+      }
+
+      bitindex = offset - 1;
 
     }
 

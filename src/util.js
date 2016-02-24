@@ -1,5 +1,19 @@
 'use strict';
 
+// A list of bit indexes for every product of a word modulo 37.
+// See http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightModLookup
+const POSITION_TABLE = [ 32, 0, 1, 26, 2, 23, 27, 0, 3, 16, 24, 30, 28, 11, 0, 13, 4, 7, 17, 0, 25, 22, 31, 15, 29, 10, 12, 6, 0, 21, 14, 9, 5, 20, 8, 19, 18 ];
+
+/**
+ * Returns the index of the lowest set bit in a 32-bit word. In other words,
+ * counts the trailing zeroes on the word.
+ */
+function position(word) {
+
+  return POSITION_TABLE[ ((-word & word) >>> 0) % 37 ];
+
+}
+
 // A list of cardinalities for every nibble. We could do this for every byte
 // if we wanted, but the table would be much larger.
 const HAMMING_TABLE = [
@@ -38,6 +52,32 @@ function weight(word) {
 }
 
 /**
+ * Returns the lowest set bit in a word.
+ */
+function lowest(word) {
+
+  return position(word & -word);
+
+}
+
+/**
+ * Returns the highest set bit in a word.
+ */
+function highest(word) {
+
+  word |= word >> 1;
+  word |= word >> 2;
+  word |= word >> 4;
+  word |= word >> 8;
+  word |= word >> 16;
+
+  // We have to use a zero-fill right shift here, or the word will overflow when
+  // the highest bit is in the leftmost position.
+  return position((word >>> 1) + 1);
+
+}
+
+/**
  * Convert a word into an unsigned binary string. We need to do an empty
  * unsigned right-shift to coerce the word into a uint32, or the toString
  * function will misrepresent bit 31.
@@ -50,7 +90,10 @@ function stringify(word) {
 
 module.exports = {
 
+  position:  position,
   weight:    weight,
+  lowest:    lowest,
+  highest:   highest,
   stringify: stringify
 
 }

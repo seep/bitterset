@@ -16,6 +16,7 @@
     "url": "https://github.com/atonparker/bitterset.git"
   },
   "devDependencies": {
+    "benchmark": "^2.1.0",
     "faucet": "0.0.1",
     "tape": "^4.4.0"
   },
