@@ -1,6 +1,5 @@
 bitterset
 =========
-[![Build Status](https://travis-ci.org/atonparker/bitterset.png?branch=master)](https://travis-ci.org/atonparker/bitterset)
 
 __bitterset__ aims to be a fast &amp; simple set of bits. The set will automatically grow and shrink to accomodate the largest significant bit. It has no dependencies.
 
